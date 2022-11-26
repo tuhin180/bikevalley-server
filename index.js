@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -53,7 +53,21 @@ async function run() {
       res.send({ result, token });
     });
 
-    console.log("database connected...");
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const result = await bikesCategoryCollection
+        .find(query)
+        .limit(3)
+        .toArray();
+      res.send(result);
+    });
+
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { category_id: id };
+      const options = await bikesCollection.find(query).toArray();
+      res.send(options);
+    });
   } finally {
   }
 }
