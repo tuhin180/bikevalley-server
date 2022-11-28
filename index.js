@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const { query } = require("express");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
@@ -53,6 +54,9 @@ async function run() {
     const usersCollection = client.db("bike-valley").collection("users");
 
     const bookingCollection = client.db("bike-valley").collection("booking");
+    const AdvertisedCollection = client
+      .db("bike-valley")
+      .collection("AdvertisedItem");
 
     const paymentsCollection = client.db("bike-valley").collection("payments");
 
@@ -101,6 +105,7 @@ async function run() {
       const user = await usersCollection.findOne(query);
       res.send({ isSeller: user?.role === "Seller" });
     });
+
     app.get("/users/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const decodedEmail = req.decoded.email;
@@ -185,6 +190,7 @@ async function run() {
       const updatedDoc = {
         $set: {
           paid: true,
+
           transactionId: payment.transactionId,
         },
       };
@@ -192,7 +198,51 @@ async function run() {
         filter,
         updatedDoc
       );
+
+      const product = await bikesCollection.updateOne(
+        {
+          _id: payment.productId,
+        },
+        {
+          $set: {
+            status: false,
+          },
+        }
+      );
+
       res.send(result);
+    });
+
+    app.post("/bikes", async (req, res) => {
+      const body = req.body;
+      const query = { name: body.category_name };
+      const category = await bikesCategoryCollection.findOne(query);
+      const product = {
+        category_id: category._id.toString(),
+        ...body,
+        status: true,
+      };
+      const option = await bikesCollection.insertOne(product);
+      res.send(option);
+    });
+
+    app.get("/bikes", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const product = await bikesCollection.find(query).toArray();
+      res.send(product);
+    });
+
+    app.post("/advertisedItem", async (req, res) => {
+      const product = req.body;
+      const advertised = await AdvertisedCollection.insertOne(product);
+      res.send(advertised);
+    });
+
+    app.get("/advertisedItem", async (req, res) => {
+      const query = {};
+      const product = await AdvertisedCollection.find(query).toArray();
+      res.send(product);
     });
   } finally {
   }
