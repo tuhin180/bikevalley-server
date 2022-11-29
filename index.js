@@ -240,6 +240,32 @@ async function run() {
       res.send(product);
     });
 
+    app.put("/bikes/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const product = req.body;
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          name: product.name,
+          resale_price: product.resale_price,
+          original_price: product.original_price,
+          product_condition: product.product_condition,
+          category_name: product.category_name,
+          phone: product.phone,
+          location: product.location,
+          time_of_post: product.time_of_post,
+          description: product.description,
+        },
+      };
+      const result = await bikesCollection.updateOne(
+        filter,
+        updatedDoc,
+        option
+      );
+      res.send(result);
+    });
+
     app.delete("/bikes/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
