@@ -86,6 +86,13 @@ async function run() {
       res.send(user);
     });
 
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     app.get("/users/allseller", async (req, res) => {
       const query = { role: "Seller" };
       const seller = await usersCollection.find(query).toArray();
@@ -231,6 +238,13 @@ async function run() {
       const query = { email: email };
       const product = await bikesCollection.find(query).toArray();
       res.send(product);
+    });
+
+    app.delete("/bikes/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await bikesCollection.deleteOne(filter);
+      res.send(result);
     });
 
     app.post("/advertisedItem", async (req, res) => {
